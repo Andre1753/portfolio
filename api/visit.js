@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
-    // 1. Configurar CORS (Para permitir que o seu GitHub Pages acesse a API)
+    // 1. Configurar CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*'); // No futuro, troque pelo seu link do GitHub Pages
+    res.setHeader('Access-Control-Allow-Origin', '*'); 
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,POST,PUT');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
@@ -11,9 +11,15 @@ export default async function handler(req, res) {
 
     const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 
-    // Rota POST: Cria a visita (Telemetria inicial)
+    // Rota POST: Cria a visita com Geolocalização Automática
     if (req.method === 'POST') {
         const { referrer, screen, lang, ua } = req.body;
+
+        // Captura dados geográficos dos headers da Vercel (não precisa de GPS)
+        const city = req.headers['x-vercel-ip-city'] || 'Desconhecido';
+        const region = req.headers['x-vercel-ip-country-region'] || 'Desconhecido';
+        const country = req.headers['x-vercel-ip-country'] || 'Desconhecido';
+        const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '0.0.0.0';
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/visits`, {
             method: 'POST',
@@ -27,7 +33,11 @@ export default async function handler(req, res) {
                 referrer,
                 screen_res: screen,
                 language: lang,
-                user_agent: ua
+                user_agent: ua,
+                city,
+                region,
+                country,
+                ip: ip.split(',')[0] // Pega apenas o primeiro IP caso venha uma lista
             })
         });
 
@@ -35,9 +45,9 @@ export default async function handler(req, res) {
         return res.status(201).json(data[0]);
     }
 
-    // Rota PATCH: Atualiza com os dados do Formulário
+    // Rota PATCH: Atualiza com os campos de contato separados
     if (req.method === 'PATCH') {
-        const { id, visitor_name, company, job_title, contact_info } = req.body;
+        const { id, visitor_name, company, job_title, visitor_email, visitor_phone } = req.body;
 
         if (!id) return res.status(400).json({ error: 'ID da visita não encontrado' });
 
@@ -52,7 +62,8 @@ export default async function handler(req, res) {
                 visitor_name,
                 company,
                 job_title,
-                contact_info
+                visitor_email,
+                visitor_phone
             })
         });
 

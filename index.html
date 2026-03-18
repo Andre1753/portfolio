@@ -17,7 +17,7 @@
         #visit-form p.form-title { text-align: center; font-weight: bold; margin-bottom: 1rem; color: #050505; }
         .form-group { margin-bottom: 1rem; }
         label { display: block; margin-bottom: 0.3rem; font-size: 0.9rem; color: #4b5563; font-weight: 500; }
-        input { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 1rem; box-sizing: border-box; /* Garante que padding não aumente largura */ }
+        input { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
         input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
         input::placeholder { color: #9ca3af; }
         span.optional { color: #9ca3af; font-weight: normal; font-size: 0.8rem; }
@@ -55,8 +55,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="visitor-contact">Email ou Telefone *</label>
-                    <input type="text" id="visitor-contact" placeholder="Ex: joao@email.com ou (11) 9... " required>
+                    <label for="visitor-email">E-mail Profissional *</label>
+                    <input type="email" id="visitor-email" placeholder="nome@empresa.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="visitor-phone">WhatsApp / Telefone *</label>
+                    <input type="tel" id="visitor-phone" placeholder="+55 (11) 99999-9999" maxlength="19" required>
                 </div>
 
                 <button class="btn-submit" onclick="marcarPresenca()">Estive aqui!</button>
@@ -69,14 +74,20 @@
     </div>
 
     <script>
-        // Substituiremos pela URL da Vercel em breve
         const API_URL = 'https://api-portfolio-blue.vercel.app/api/visit';
         let visitId = null;
 
-        // 1. Telemetria Automática (Load) - Continua igual
+        // Máscara de Telefone Internacional (+55...)
+        document.getElementById('visitor-phone').addEventListener('input', (e) => {
+            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,2})(\d{0,5})(\d{0,4})/);
+            if (!x[1]) { e.target.value = ''; return; }
+            if (!x[2]) { e.target.value = '+' + x[1]; return; }
+            e.target.value = '+' + x[1] + ' (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '');
+        });
+
+        // 1. Telemetria Automática (Load)
         window.addEventListener('load', async () => {
             const payload = {
-                type: 'load',
                 referrer: document.referrer || 'Direto',
                 screen: `${window.screen.width}x${window.screen.height}`,
                 lang: navigator.language,
@@ -93,57 +104,48 @@
                 visitId = data.id;
                 console.log('Telemetria OK');
             } catch (e) {
-                console.warn('API offline - rodando localmente. Dados não salvos.');
+                console.warn('API offline ou erro na telemetria.');
             }
         });
 
-        // 2. Formulário Voluntário - Atualizado para capturar múltiplos campos
+        // 2. Formulário Voluntário (Leads)
         async function marcarPresenca() {
-            // Captura dos elementos
-            const nomeEl = document.getElementById('visitor-name');
-            const empresaEl = document.getElementById('visitor-company');
-            const cargoEl = document.getElementById('visitor-role');
-            const contatoEl = document.getElementById('visitor-contact');
+            const nome = document.getElementById('visitor-name').value.trim();
+            const empresa = document.getElementById('visitor-company').value.trim();
+            const cargo = document.getElementById('visitor-role').value.trim();
+            const email = document.getElementById('visitor-email').value.trim();
+            const telefone = document.getElementById('visitor-phone').value.trim();
 
-            // Captura dos valores
-            const nome = nomeEl.value.trim();
-            const empresa = empresaEl.value.trim();
-            const cargo = cargoEl.value.trim();
-            const contato = contatoEl.value.trim();
-
-            // Validação simples (Obrigatórios: Nome, Empresa, Contato)
-            if (!nome || !empresa || !contato) {
-                alert('Por favor, preencha os campos obrigatórios (*).');
+            if (!nome || !empresa || !email || !telefone) {
+                alert('Por favor, preencha todos os campos obrigatórios (*).');
                 return;
             }
 
-            // Cria o payload atualizado (com os nomes de campo do banco)
             const payloadUpdate = {
                 id: visitId,
                 visitor_name: nome,
                 company: empresa,
-                job_title: cargo || null, // Garante NULL se estiver vazio
-                contact_info: contato
+                job_title: cargo || null,
+                visitor_email: email,
+                visitor_phone: telefone
             };
 
             try {
                 const response = await fetch(API_URL, {
-                    method: 'PATCH', // Mantemos PATCH porque estamos atualizando a visita
+                    method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payloadUpdate)
                 });
 
                 if (response.ok) {
-                    // Esconde o formulário e mostra mensagem de sucesso
                     document.getElementById('visit-form').style.display = 'none';
                     document.getElementById('form-message').style.display = 'block';
                 } else {
-                    throw new Error('Falha na API');
+                    throw new Error('Erro ao salvar dados');
                 }
-
             } catch (e) {
-                alert('Valeu pela tentativa! Mas parece que minha API ainda está offline na Vercel.');
-                console.error('Erro no push:', e);
+                alert('Erro ao enviar dados. Tente novamente mais tarde.');
+                console.error(e);
             }
         }
     </script>
