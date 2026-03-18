@@ -1,23 +1,32 @@
 <!DOCTYPE html>
-<html lang="pt-br" data-theme="light">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>André Silva | Engenheiro de Software Sênior</title>
+    
+    <script>
+        let localTheme = localStorage.getItem('theme');
+        let sysTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        let currentTheme = localTheme || sysTheme;
+        document.documentElement.setAttribute('data-theme', currentTheme);
+    </script>
+
+    <meta name="theme-color" content="#f0f4f8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         /* =========================================
-           VARIÁVEIS DE TEMA (Abordagem Sênior)
+           VARIÁVEIS DE TEMA
            ========================================= */
-           
-        /* Modo Claro Ouro (Padrão) */
         :root {
             --bg-base: #f0f4f8;
-            --bg-blob-1: rgba(59, 130, 246, 0.15); /* Azul */
-            --bg-blob-2: rgba(139, 92, 246, 0.15); /* Roxo */
+            --bg-blob-1: rgba(59, 130, 246, 0.15); 
+            --bg-blob-2: rgba(139, 92, 246, 0.15); 
             --card-bg: rgba(255, 255, 255, 0.6);
             --card-border: rgba(255, 255, 255, 0.8);
             --card-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
@@ -31,8 +40,6 @@
             --modal-bg: rgba(0, 0, 0, 0.4);
         }
 
-        /* Modo Escuro Premium (Deep Space) */
-        /* Aplicado dinamicamente via JS na tag <html> */
         [data-theme="dark"] {
             --bg-base: #020617;
             --bg-blob-1: rgba(37, 99, 235, 0.15);
@@ -64,7 +71,6 @@
             transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        /* Background com profundidade (Blobs) */
         body::before, body::after {
             content: ''; position: fixed; border-radius: 50%; filter: blur(100px); z-index: -1;
             transition: background-color 0.4s ease;
@@ -87,7 +93,6 @@
         .theme-toggle:hover { border-color: var(--primary); color: var(--primary); transform: scale(1.05); }
         .theme-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-        /* BOTAO GLOW */
         .btn-glow {
             background: linear-gradient(135deg, var(--primary), var(--accent));
             color: white; border: none; padding: 12px 28px; border-radius: 12px;
@@ -104,13 +109,10 @@
             background: linear-gradient(to right, var(--text-main), var(--text-muted));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .hero-subtitle {
-            font-size: 1.25rem; font-weight: 600; color: var(--primary); margin-bottom: 1.5rem; letter-spacing: 1px; text-transform: uppercase;
-        }
+        .hero-subtitle { font-size: 1.25rem; font-weight: 600; color: var(--primary); margin-bottom: 1.5rem; letter-spacing: 1px; text-transform: uppercase; }
         .hero-desc { color: var(--text-muted); font-size: 1.1rem; max-width: 650px; margin-bottom: 2.5rem; }
 
-        /* Ícones Sociais */
-        .social-links { display: flex; gap: 1rem; }
+        .social-links { display: flex; gap: 1rem; flex-wrap: wrap; }
         .social-btn {
             display: flex; align-items: center; gap: 10px; padding: 10px 20px;
             background: var(--card-bg); border: 1px solid var(--card-border);
@@ -140,14 +142,11 @@
         }
         .tech-card:hover { border-color: var(--primary); background: rgba(37, 99, 235, 0.05); transform: translateY(-4px); }
         .tech-card svg { width: 40px; height: 40px; fill: var(--icon-fill); transition: fill 0.3s ease; }
-        .tech-card span { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        .tech-card span { font-weight: 600; font-size: 0.9rem; color: var(--text-main); text-align: center; }
 
         /* TIMELINE EXPERIÊNCIA */
         .timeline { position: relative; padding-left: 2rem; }
-        .timeline::before {
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-            background: var(--timeline-line); border-radius: 2px;
-        }
+        .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--timeline-line); border-radius: 2px; }
         .timeline-item { position: relative; margin-bottom: 3rem; }
         .timeline-item:last-child { margin-bottom: 0; }
         
@@ -164,28 +163,39 @@
         .job-date { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); background: var(--bg-base); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--card-border); transition: background-color 0.4s ease; }
         .job-desc { color: var(--text-muted); margin-top: 1rem; line-height: 1.6; }
 
-        /* MODAL */
+        /* MODAL E FORMS */
         .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: var(--modal-bg); backdrop-filter: blur(8px); align-items: center; justify-content: center; }
-        .modal-content { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 450px; box-shadow: var(--card-shadow); position: relative; }
+        .modal-content { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 450px; box-shadow: var(--card-shadow); position: relative; max-height: 90vh; overflow-y: auto; }
         .close-btn { position: absolute; top: 20px; right: 24px; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
         .close-btn:hover { color: var(--text-main); transform: scale(1.1); }
         
-        /* FORMS */
-        .form-title { text-align: center; font-weight: 800; font-size: 1.3rem; margin-bottom: 2rem; color: var(--text-main); }
+        .form-title { text-align: center; font-weight: 800; font-size: 1.3rem; margin-bottom: 1.5rem; color: var(--text-main); }
         .form-group { margin-bottom: 1.2rem; }
         label { display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
         input { width: 100%; padding: 14px; background: rgba(0,0,0,0.02); border: 1px solid var(--timeline-line); color: var(--text-main); border-radius: 12px; font-size: 1rem; transition: 0.3s; }
-        
-        /* Ajuste do Input para o modo Escuro */
         [data-theme="dark"] input { background: rgba(255,255,255,0.03); }
-        
         input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); background: transparent; }
         .optional { font-weight: 400; color: var(--text-muted); font-size: 0.75rem; }
 
+        /* =========================================
+           RESPONSIVIDADE (MOBILE FIX)
+           ========================================= */
         @media (max-width: 600px) {
+            .container { padding: 1.5rem; }
             .hero-title { font-size: 2.5rem; }
-            .tech-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero-subtitle { font-size: 1.1rem; }
+            
+            /* Ajuste Perfeito para a Tech Stack no Mobile */
+            .tech-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+            .tech-card { padding: 1rem; gap: 8px; }
+            .tech-card svg { width: 30px; height: 30px; }
+            .tech-card span { font-size: 0.8rem; }
+            
+            /* Ajuste dos Panels e Timeline */
             .glass-panel { padding: 1.5rem; }
+            .job-header { flex-direction: column; align-items: flex-start; }
+            .timeline { padding-left: 1.5rem; }
+            .timeline-item::before { left: -1.9rem; }
         }
     </style>
 </head>
@@ -195,12 +205,12 @@
         <header>
             <button class="theme-toggle" id="theme-toggle" title="Alternar Tema">
                 <svg id="icon-sun" style="display: none;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg id="icon-moon" style="display: none;" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
 
             <button class="btn-glow" onclick="openModal()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                Vamos Conversar
+                <span class="btn-text">Vamos Conversar</span>
             </button>
         </header>
 
@@ -339,27 +349,13 @@
     </div>
 
     <script>
-        /* --- Lógica de Toggle de Tema (Sênior) --- */
+        /* --- Ajusta o Ícone do Tema no Load --- */
         const themeToggle = document.getElementById('theme-toggle');
         const iconSun = document.getElementById('icon-sun');
         const iconMoon = document.getElementById('icon-moon');
         const htmlElement = document.documentElement;
 
-        // 1. Verifica se o usuário já salvou alguma preferência. Se não, usa a do Sistema.
-        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        setTheme(savedTheme);
-
-        // 2. Evento de Clique no botão
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
-
-        // 3. Função que injeta a preferência no HTML e ajusta o ícone
-        function setTheme(theme) {
-            htmlElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            
+        function updateIconDisplay(theme) {
             if (theme === 'dark') {
                 iconSun.style.display = 'block';
                 iconMoon.style.display = 'none';
@@ -368,6 +364,18 @@
                 iconMoon.style.display = 'block';
             }
         }
+        
+        // Puxa o tema atual que o <head> já definiu
+        updateIconDisplay(htmlElement.getAttribute('data-theme'));
+
+        // Clique no Botão
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateIconDisplay(newTheme);
+        });
 
         /* --- Lógica do Modal e Telemetria (Inalterada) --- */
         const modal = document.getElementById("contact-modal");
