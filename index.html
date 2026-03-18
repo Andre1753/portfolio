@@ -76,8 +76,45 @@
     <script>
         const API_URL = 'https://api-portfolio-blue.vercel.app/api/visit';
         let visitId = null;
+        
+        // --- Lógica do Tempo de Permanência ---
+        let startTime = Date.now();
+        let totalSeconds = 0;
 
-        // Máscara de Telefone Internacional (+55...)
+        function updateAndSendTime() {
+            if (!visitId) return;
+            
+            const now = Date.now();
+            totalSeconds += Math.round((now - startTime) / 1000);
+            startTime = now; // Reseta o início para a próxima contagem
+
+            const payload = JSON.stringify({
+                id: visitId,
+                time_on_page: totalSeconds
+            });
+
+            // keepalive: true permite que a requisição termine mesmo se a aba fechar
+            fetch(API_URL, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: payload,
+                keepalive: true 
+            });
+        }
+
+        // Detecta quando o usuário sai da aba ou fecha a página
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                updateAndSendTime();
+            } else {
+                startTime = Date.now(); // Usuário voltou, reinicia o cronômetro
+            }
+        });
+
+        // Backup para fechamento total da aba
+        window.addEventListener('pagehide', updateAndSendTime);
+
+        // --- Máscara de Telefone ---
         document.getElementById('visitor-phone').addEventListener('input', (e) => {
             let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,2})(\d{0,5})(\d{0,4})/);
             if (!x[1]) { e.target.value = ''; return; }
@@ -144,7 +181,7 @@
                     throw new Error('Erro ao salvar dados');
                 }
             } catch (e) {
-                alert('Erro ao enviar dados. Tente novamente mais tarde.');
+                alert('Erro ao enviar dados.');
                 console.error(e);
             }
         }
