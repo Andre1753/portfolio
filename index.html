@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo Inteligente | André Silva</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; color: #333; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>André Silva</h1>
+        <p>Engenheiro de Software</p>
+        <hr>
+        <div id="visit-form">
+            <p><strong>Deixe sua marca!</strong></p>
+            <input type="text" id="visitor-name" placeholder="Seu nome ou empresa">
+            <button onclick="marcarPresenca()">Estive aqui!</button>
+        </div>
+    </div>
+
+    <script>
+        // Substituiremos pela URL da Vercel em breve
+        const API_URL = 'https://SUA-API-AQUI.vercel.app/api/visit';
+        let visitId = null;
+
+        // 1. Telemetria Automática (Load)
+        window.addEventListener('load', async () => {
+            const payload = {
+                type: 'load',
+                referrer: document.referrer || 'Direto',
+                screen: `${window.screen.width}x${window.screen.height}`,
+                lang: navigator.language,
+                ua: navigator.userAgent
+            };
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                visitId = data.id;
+                console.log('Telemetria OK');
+            } catch (e) {
+                console.warn('API ainda offline - rodando localmente');
+            }
+        });
+
+        // 2. Formulário Voluntário
+        async function marcarPresenca() {
+            const nome = document.getElementById('visitor-name').value;
+            if (!nome) return alert('Por favor, digite seu nome');
+
+            try {
+                await fetch(API_URL, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: visitId, nome: nome })
+                });
+                document.getElementById('visit-form').innerHTML = "<h3>Obrigado pela visita!</h3>";
+            } catch (e) {
+                alert('Valeu pela tentativa! API offline.');
+            }
+        }
+    </script>
+</body>
+</html>
