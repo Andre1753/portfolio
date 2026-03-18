@@ -1,25 +1,20 @@
 export default async function handler(req, res) {
-    // 1. Configurar CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*'); 
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,POST,PUT');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
     const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 
-    // Rota POST: Cria a visita com Geolocalização Completa
+    // Rota POST: Cria a visita (Telemetria inicial)
     if (req.method === 'POST') {
         const { referrer, screen, lang, ua } = req.body;
 
         const city = req.headers['x-vercel-ip-city'] || 'Desconhecido';
         const region = req.headers['x-vercel-ip-country-region'] || 'Desconhecido';
         const country = req.headers['x-vercel-ip-country'] || 'Desconhecido';
-        const latitude = req.headers['x-vercel-ip-latitude'] || '0';
-        const longitude = req.headers['x-vercel-ip-longitude'] || '0';
         const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '0.0.0.0';
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/visits`, {
@@ -38,8 +33,6 @@ export default async function handler(req, res) {
                 city,
                 region,
                 country,
-                latitude,
-                longitude,
                 ip: ip.split(',')[0]
             })
         });
@@ -54,8 +47,6 @@ export default async function handler(req, res) {
 
         if (!id) return res.status(400).json({ error: 'ID da visita não encontrado' });
 
-        // Lógica Sênior: Monta o objeto apenas com o que foi enviado na requisição
-        // Isso evita que o timer apague o nome, ou que o form zere o timer.
         const updateData = {};
         if (visitor_name !== undefined) updateData.visitor_name = visitor_name;
         if (company !== undefined) updateData.company = company;
