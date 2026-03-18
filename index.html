@@ -83,17 +83,12 @@
 
         function updateAndSendTime() {
             if (!visitId) return;
-            
             const now = Date.now();
             totalSeconds += Math.round((now - startTime) / 1000);
-            startTime = now; // Reseta o início para a próxima contagem
+            startTime = now;
 
-            const payload = JSON.stringify({
-                id: visitId,
-                time_on_page: totalSeconds
-            });
+            const payload = JSON.stringify({ id: visitId, time_on_page: totalSeconds });
 
-            // keepalive: true permite que a requisição termine mesmo se a aba fechar
             fetch(API_URL, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -102,16 +97,11 @@
             });
         }
 
-        // Detecta quando o usuário sai da aba ou fecha a página
         window.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-                updateAndSendTime();
-            } else {
-                startTime = Date.now(); // Usuário voltou, reinicia o cronômetro
-            }
+            if (document.visibilityState === 'hidden') updateAndSendTime();
+            else startTime = Date.now();
         });
 
-        // Backup para fechamento total da aba
         window.addEventListener('pagehide', updateAndSendTime);
 
         // --- Máscara de Telefone ---
@@ -122,13 +112,25 @@
             e.target.value = '+' + x[1] + ' (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '');
         });
 
-        // 1. Telemetria Automática (Load)
+        // 1. Telemetria Automática (Load) - COM UTMs E RETORNO
         window.addEventListener('load', async () => {
+            // Verifica se é visitante recorrente via localStorage
+            const isReturning = localStorage.getItem('visited_before') === 'true';
+            localStorage.setItem('visited_before', 'true');
+
+            // Captura parâmetros da URL (UTMs)
+            const urlParams = new URLSearchParams(window.location.search);
+
             const payload = {
                 referrer: document.referrer || 'Direto',
                 screen: `${window.screen.width}x${window.screen.height}`,
                 lang: navigator.language,
-                ua: navigator.userAgent
+                ua: navigator.userAgent,
+                // Novos campos de Inteligência
+                utm_source: urlParams.get('utm_source'),
+                utm_medium: urlParams.get('utm_medium'),
+                utm_campaign: urlParams.get('utm_campaign'),
+                is_returning: isReturning
             };
 
             try {
@@ -139,9 +141,9 @@
                 });
                 const data = await res.json();
                 visitId = data.id;
-                console.log('Telemetria OK');
+                console.log('Telemetria Sênior OK');
             } catch (e) {
-                console.warn('API offline ou erro na telemetria.');
+                console.warn('Erro na telemetria.');
             }
         });
 

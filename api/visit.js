@@ -1,17 +1,24 @@
 export default async function handler(req, res) {
+    // 1. Configurar CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*'); 
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,POST,PUT');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
     const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 
-    // Rota POST: Cria a visita (Telemetria inicial)
+    // Rota POST: Cria a visita com Geolocalização e Inteligência de Marketing
     if (req.method === 'POST') {
-        const { referrer, screen, lang, ua } = req.body;
+        const { 
+            referrer, screen, lang, ua, 
+            utm_source, utm_medium, utm_campaign, is_returning 
+        } = req.body;
 
+        // Captura dados geográficos automáticos da Vercel
         const city = req.headers['x-vercel-ip-city'] || 'Desconhecido';
         const region = req.headers['x-vercel-ip-country-region'] || 'Desconhecido';
         const country = req.headers['x-vercel-ip-country'] || 'Desconhecido';
@@ -33,7 +40,12 @@ export default async function handler(req, res) {
                 city,
                 region,
                 country,
-                ip: ip.split(',')[0]
+                ip: ip.split(',')[0],
+                // Novos campos de Marketing
+                utm_source,
+                utm_medium,
+                utm_campaign,
+                is_returning: is_returning || false
             })
         });
 
@@ -41,7 +53,7 @@ export default async function handler(req, res) {
         return res.status(201).json(data[0]);
     }
 
-    // Rota PATCH: Atualiza Lead OU Tempo de Permanência
+    // Rota PATCH: Atualiza Lead OU Tempo de Permanência (Continua dinâmico)
     if (req.method === 'PATCH') {
         const { id, visitor_name, company, job_title, visitor_email, visitor_phone, time_on_page } = req.body;
 
